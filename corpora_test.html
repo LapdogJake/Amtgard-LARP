@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corpora of the Freeholds - Test</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            background-color: #2c241a; 
+            color: #3e2723; 
+            display: flex; 
+            justify-content: center; 
+            padding: 30px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 800px; 
+            width: 100%;
+            background: #f4e4bc; 
+            padding: 30px; 
+            border: 4px solid #5d4037; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h1 { 
+            text-align: center; 
+            border-bottom: 2px solid #5d4037; 
+            padding-bottom: 15px; 
+            margin-top: 0;
+        }
+        .question-block {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #5d4037;
+        }
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        label {
+            cursor: pointer;
+            margin-right: 20px;
+            font-size: 1rem;
+        }
+        .btn {
+            background: #5d4037;
+            color: #f4e4bc;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #3e2723; }
+        #results {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .pass { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Corpora of the Freeholds - Test</h1>
+    <div id="quiz-container"></div>
+    <button class="btn" id="submit-btn" onclick="gradeQuiz()">Submit Answers</button>
+    <div id="results"></div>
+    <button class="btn" id="retry-btn" style="display: none;" onclick="initQuiz()">Retake Quiz</button>
+</div>
+
+<script>
+    const allQuestions = [
+        { q: "In the event of a conflict, the Freehold Corpora has higher authority than the Amtgard Rules of Play.", a: "false" },
+        { q: "A Freehold Althing can be used to override a ban issued by a Kingdom of Amtgard.", a: "false" },
+        { q: "To be a Contributing Member, one must be a minimum of 14 years of age.", a: "true" },
+        { q: "Dues for a Freehold are $6 and last for a period of six months.", a: "true" },
+        { q: "An elected officer may hold up to two positions at the same time.", a: "false" },
+        { q: "Elected officers are removed from office if they miss more than eight total weeks of attendance.", a: "true" },
+        { q: "The Prime Minister steps into office at the freehold’s Coronation event.", a: "false" },
+        { q: "The Monarch has the power to break ties in their group's Althing unless they are directly involved.", a: "true" },
+        { q: "The Regent is primarily responsible for the primary record-keeping for the freehold.", a: "false" },
+        { q: "The Guildmaster of Reeves is responsible for coordinating weapon safety with the group Champion.", a: "true" },
+        { q: "The Reeves Guild consists of members who passed the reeves test with an 80% or higher.", a: "false" },
+        { q: "Althings must be scheduled at least once a month, unless there is no business to discuss.", a: "true" },
+        { q: "Any Standard Member of the freehold is eligible to vote in the Althing.", a: "false" },
+        { q: "Removing a park officer requires a 2/3 majority in order to pass.", a: "true" },
+        { q: "Candidates for office must pass a Reeves Test and a Freehold Corpora test with a score of 75% or better prior to the election.", a: "true" },
+        { q: "Members of a freehold may receive awards from other groups.", a: "false" },
+        { q: "The Griffin award is granted for outstanding role-playing or portrayal of a persona.", a: "false" },
+        { q: "Midreign events take place roughly every six months, at the midpoint between Coronations.", a: "true" },
+        { q: "The Freehold Corpora is intended to work in conjunction with the Amtgard Rules of Play.", a: "true" },
+        { q: "A Contributing Member must have signed in within the freehold at a minimum of six events within the preceding six months.", a: "true" },
+        { q: "Freehold monarchs may grant Ladder awards up to the third level.", a: "false" },
+        { q: "All levels of Progressive Orders must be earned consecutively.", a: "true" },
+        { q: "Masterhood in a Progressive Order qualifies a player for knighthood.", a: "false" },
+        { q: "The Hydra award is granted for qualifying for the office of Monarch or Regent.", a: "true" },
+        { q: "The Flame award may be granted multiple times per reign to a group for outstanding contributions.", a: "false" },
+        { q: "A Regent may bestow the Dragon, Garber, and Owl awards up to the second order.", a: "true" },
+        { q: "The Zodiac award is granted for outstanding contributions in a single month and may only be granted once per month.", a: "true" },
+        { q: "Monarchs may create new awards as necessary, so long as those awards do not conflict with existing Amtgard awards.", a: "true" }
+    ];
+
+    let currentQuiz = [];
+
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function initQuiz() {
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('submit-btn').style.display = 'block';
+        document.getElementById('retry-btn').style.display = 'none';
+        
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = ''; 
+        
+        let shuffled = shuffleArray([...allQuestions]);
+        currentQuiz = shuffled.slice(0, 10);
+
+        currentQuiz.forEach((item, index) => {
+            const block = document.createElement('div');
+            block.className = 'question-block';
+            block.innerHTML = `
+                <div class="question-text">${index + 1}. ${item.q}</div>
+                <label><input type="radio" name="q${index}" value="true"> True</label>
+                <label><input type="radio" name="q${index}" value="false"> False</label>
+            `;
+            container.appendChild(block);
+        });
+    }
+
+    function gradeQuiz() {
+        let score = 0;
+        let answeredAll = true;
+
+        currentQuiz.forEach((item, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            if (!selected) {
+                answeredAll = false;
+            } else if (selected.value === item.a) {
+                score++;
+            }
+        });
+
+        if (!answeredAll) {
+            alert("Please answer all 10 questions before submitting.");
+            return;
+        }
+
+        const percentage = (score / 10) * 100;
+        const resultsDiv = document.getElementById('results');
+        
+        if (percentage >= 80) {
+            resultsDiv.className = 'pass';
+            resultsDiv.innerHTML = `Success! You scored ${percentage}% (${score}/10).`;
+        } else {
+            resultsDiv.className = 'fail';
+            resultsDiv.innerHTML = `Failed. You scored ${percentage}% (${score}/10). You need 80% to pass.`;
+        }
+
+        resultsDiv.style.display = 'block';
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('retry-btn').style.display = 'block';
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>

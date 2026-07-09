@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bestiary Knowledge - Test</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            background-color: #2c241a; 
+            color: #3e2723; 
+            display: flex; 
+            justify-content: center; 
+            padding: 30px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 800px; 
+            width: 100%;
+            background: #f4e4bc; 
+            padding: 30px; 
+            border: 4px solid #5d4037; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h1 { 
+            text-align: center; 
+            border-bottom: 2px solid #5d4037; 
+            padding-bottom: 15px; 
+            margin-top: 0;
+        }
+        .question-block {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #5d4037;
+        }
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        label {
+            cursor: pointer;
+            margin-right: 20px;
+            font-size: 1rem;
+        }
+        .btn {
+            background: #5d4037;
+            color: #f4e4bc;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #3e2723; }
+        #results {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .pass { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Bestiary Knowledge - Test</h1>
+    <div id="quiz-container"></div>
+    <button class="btn" id="submit-btn" onclick="gradeQuiz()">Submit Answers</button>
+    <div id="results"></div>
+    <button class="btn" id="retry-btn" style="display: none;" onclick="initQuiz()">Retake Quiz</button>
+</div>
+
+<script>
+    const allQuestions = [
+        { q: "In the event of a dispute, the Amtgard Rules of Play supersedes all Monster supplements and handbooks.", a: "true" },
+        { q: "Standard Monsters (Tier 1) are designed to match the power level of a 6th-level player.", a: "false" },
+        { q: "A player must be at least Level 4 to play an Advanced Monster (Tier 2) in a Class Battlegame without special permission.", a: "true" },
+        { q: "If a player is not high enough level to play a certain monster, they are strictly forbidden from playing it under all circumstances.", a: "false" },
+        { q: "A player playing a Monster in a class battlegame should wear exactly two Eye Class Symbols.", a: "true" },
+        { q: "A monster listing 'Light Thrown (4)' under their Weapons is permitted to carry an unlimited amount of those weapons.", a: "false" },
+        { q: "Monster Armor behaves identically to magic armor but cannot be combined with other types of armor.", a: "true" },
+        { q: "Inherent Enchantments are permanent and can never be Dispelled or removed.", a: "false" },
+        { q: "A monster with the Amorphous trait has only one hit location and is unaffected by the Wounding spell.", a: "true" },
+        { q: "The Aquatic trait allows a player to ignore the effects of Water Terrain.", a: "true" },
+        { q: "A player with the Hard to Kill trait is immune to Wounds Kill effects.", a: "false" },
+        { q: "Inherent Weapons cannot be destroyed, but Phasing abilities still ignore this trait.", a: "true" },
+        { q: "The Instant meta-magic ability can be used on the Charge incantation.", a: "false" },
+        { q: "The Magic User trait allows a monster to purchase five points of magic per level from the specified class.", a: "true" },
+        { q: "A monster with the Mighty trait wields melee weapons that are both Armor Destroying and Shield Destroying.", a: "true" },
+        { q: "Monstrous Resistance can easily be bypassed by Phasing abilities and Sacred Blades.", a: "false" },
+        { q: "If a monster has Natural Armor, effects that normally heal wounds can instead repair the player's Magic Armor.", a: "true" },
+        { q: "The Nimble trait protects a player from taking limb wounds from projectile weapons or ammunition.", a: "true" },
+        { q: "When using Sheer Numbers, the caster is permitted to end their Insubstantial state right next to a living enemy.", a: "false" },
+        { q: "A monster with Thick Skin has Magic Armor that is completely unaffected by Armor Breaking and Armor Destroying.", a: "true" }
+    ];
+
+    let currentQuiz = [];
+
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function initQuiz() {
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('submit-btn').style.display = 'block';
+        document.getElementById('retry-btn').style.display = 'none';
+        
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = ''; 
+        
+        let shuffled = shuffleArray([...allQuestions]);
+        currentQuiz = shuffled.slice(0, 10);
+
+        currentQuiz.forEach((item, index) => {
+            const block = document.createElement('div');
+            block.className = 'question-block';
+            block.innerHTML = `
+                <div class="question-text">${index + 1}. ${item.q}</div>
+                <label><input type="radio" name="q${index}" value="true"> True</label>
+                <label><input type="radio" name="q${index}" value="false"> False</label>
+            `;
+            container.appendChild(block);
+        });
+    }
+
+    function gradeQuiz() {
+        let score = 0;
+        let answeredAll = true;
+
+        currentQuiz.forEach((item, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            if (!selected) {
+                answeredAll = false;
+            } else if (selected.value === item.a) {
+                score++;
+            }
+        });
+
+        if (!answeredAll) {
+            alert("Please answer all 10 questions before submitting.");
+            return;
+        }
+
+        const percentage = (score / 10) * 100;
+        const resultsDiv = document.getElementById('results');
+        
+        if (percentage >= 80) {
+            resultsDiv.className = 'pass';
+            resultsDiv.innerHTML = `Success! You scored ${percentage}% (${score}/10).`;
+        } else {
+            resultsDiv.className = 'fail';
+            resultsDiv.innerHTML = `Failed. You scored ${percentage}% (${score}/10). You need 80% to pass.`;
+        }
+
+        resultsDiv.style.display = 'block';
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('retry-btn').style.display = 'block';
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
